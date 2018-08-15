@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="专注于区块链行业应用"><title>采集终端架构分享 | HackDApp专栏</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = 'https://hm.baidu.com/hm.js?' + '2224b1682cf112ad6e008fefcc371109';
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+  })();
+  </script></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">采集终端架构分享</h1><a id="logo" href="/.">HackDApp专栏</a><p class="description">读万卷书＜行万里路＜阅人无数＜名师指路</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a><a href="/atom.xml"><i class="fa fa-rss"> 订阅</i></a><a href="/wiki"><i class="fa fa-rss"> 知识库</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">采集终端架构分享</h1><div class="post-meta">Mar 2, 2015<span> | </span><span class="category"><a href="/categories/技术架构/">技术架构</a></span><span class="post-time"><span class="post-meta-item-text"> | </span><span class="post-meta-item-icon"><i class="fa fa-keyboard-o"></i><span class="post-count"> 1,679</span><span class="post-meta-item-text"> 字</span></span></span><span class="post-time"> | <span class="post-meta-item-icon"><i class="fa fa-hourglass-half"></i><span class="post-count"> 7</span><span class="post-meta-item-text"> 分钟</span></span></span></div><div class="post-content"><h1 id="基于OSGI的终端采集架构"><a href="#基于OSGI的终端采集架构" class="headerlink" title="基于OSGI的终端采集架构"></a>基于OSGI的终端采集架构</h1><p><img src="http://www.yunzhihui.com/img/logo.png" alt="icon"><br>在分享知识之前，先来简单来介绍一下公司的相关产品信息，以便于在知识分享的过程中，让大家更容易结合业务场景来了解其运作情况。</p>
+<h3 id="公司及产品简介"><a href="#公司及产品简介" class="headerlink" title="公司及产品简介"></a>公司及产品简介</h3><p><a href="http://www.yunzhihui.com" target="_blank" rel="noopener">云智慧（北京）科技有限公司</a>成立于2009年，是国内领先的应用性能管理服务商。基于大数据分析，为企业级用户提供全面、专业的端到端的应用性能管理（End To End Application Performance Management）解决方案。</p>
+<p>现有两套独居规模的产品线:<br><a id="more"></a></p>
+<ol>
+<li><strong>监控宝</strong><br>端到端的立体监控体系，保障IT基础设施及交付能力最佳  </li>
+<li><strong>透视宝</strong><br>面向业务的基于大数据分析的端到端应用性能管理解决方案  </li>
+</ol>
+<p>通俗来讲,整个产品线亦可理解为：</p>
+<pre><code>从服务监测,数据分析，预前告警及提供事前解决方案的一站式服务
+</code></pre><p>那么今天所要分享的便是其中的<code>服务监测</code>这块内容，亦可理解为<code>数据采集终端</code>.其采用的是基于OSGI技术的架构设计，在接下来的介绍内容中，会分两块进行描述:</p>
+<ol>
+<li><strong><em>OSGI初识</em></strong>  </li>
+<li><strong><em>OSGI在实际业务场景中的应用</em></strong>  </li>
+</ol>
+<hr>
+<h4 id="1-OSGI初识"><a href="#1-OSGI初识" class="headerlink" title="1) OSGI初识"></a>1) OSGI初识</h4><h5 id="什么是OSGI"><a href="#什么是OSGI" class="headerlink" title="什么是OSGI"></a>什么是OSGI</h5><p><a href="http://zh.wikipedia.org/wiki/OSGi" target="_blank" rel="noopener">OSGI</a>(Open Service Gateway Initiative)是OSGiAlliance组织制定的一个基于Java语言的服务（业务）规范，强调面向模块及服务的方式开发组件，通过组件的高可利用快速构建应用.      </p>
+<h5 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h5><ul>
+<li>组件化设计</li>
+<li>面向服务</li>
+<li>严格的包引用规范机制</li>
+<li>统一生命周期管理</li>
+</ul>
+<h5 id="核心内容"><a href="#核心内容" class="headerlink" title="核心内容"></a>核心内容</h5><ol>
+<li><strong><em>OSGI容器</em></strong><br><img src="http://images.51cto.com/files/uploadimg/20100324/085509587.jpg" alt="icon"><br>上图展示了整个osgi的整个服务框架.  注：图片来源<a href="51cto.com">^1</a>  </li>
+</ol>
+<p>目前基于OSGI规范的实现如下:</p>
+<pre><code>- equinox[^4]
+- felix[^2]
+- knopflerfish[^3]
+</code></pre><ol start="2">
+<li><strong><em>生命周期管理</em></strong><br><img src="http://assets.osgi.com.cn/article/7289216/lifecycle2.png" alt="icon"><br>上图展示了整个bundle插件的从安装，运行，停止，卸载的整个状态转移过程.   注：图片来源<a href="http://assets.osgi.com.cn" target="_blank" rel="noopener">^5</a></li>
+</ol>
+<ol start="3">
+<li><p><strong><em>Bundle</em></strong>，即OSGI容器所要装载的实例  </p>
+<p> 一个完整的bundle主要包括以下几部分:   </p>
+<ul>
+<li><p>MANIFEST.MF(<strong><em><code>示例</code></em></strong>)      </p>
+<pre><code>Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: SampleMain
+Bundle-SymbolicName: SampleMain
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: com.sample.main.Activator
+Import-Package:org.apache.felix.service.command;version=&quot;0.12.1&quot;,
+org.osgi.framework;version=&quot;1.3.0&quot;
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Export-Package: com.sample.main.api
+</code></pre><p>  关键配置说明：</p>
+<ul>
+<li><code>Bundle-Activator</code>：用于配置自己的事件定义，用于在bundle的启动或停止方法中处理自己的业务</li>
+<li><code>Import-Package</code>：用于配置需要导入依赖的类引用，当且仅当被导入的包也export对应的包才能导入</li>
+<li><code>Export-Package</code>：用于配置需要导出的包，即可被其他bundle可见且可导入的包路径</li>
+</ul>
+</li>
+<li><p>Activator.java(<strong><em><code>示例</code></em></strong>)</p>
+<pre><code>public class Activator  implements BundleActivator{
+
+    //可以从bundlecontext中获取其它bundle注册的服务
+    private static BundleContext context;
+
+    static BundleContext getContext() {
+        return context;
+    }
+
+    public void start(BundleContext bundleContext) throws Exception {
+        Activator.context = bundleContext;
+
+        //TODO register the service
+    }
+</code></pre></li>
+</ul>
+</li>
+</ol>
+<pre><code>        public void stop(BundleContext bundleContext) throws Exception {
+            Activator.context = null;
+
+            //TODO unregister the service
+        }
+
+    }
+系统类说明：
+- `BundleActivator`：用于捕捉bundle的start和stop事件。
+- `BundleContext`：bundle在框架中的上下文，可以通过它与框架交互。
+</code></pre><h5 id="开源应用"><a href="#开源应用" class="headerlink" title="开源应用"></a>开源应用</h5><ul>
+<li><a href="https://eclipse.org/" target="_blank" rel="noopener">Eclipse</a></li>
+<li><a href="http://www-01.ibm.com/software/cn/websphere/" target="_blank" rel="noopener">IBM websphere</a></li>
+<li>Apache<ul>
+<li><a href="http://camel.apache.org/" target="_blank" rel="noopener">Caml</a>: Apache Camel是Apache基金会下的一个开源项目,它是一个基于规则路由和中介引擎，提供企业集成模式的Java对象的实现，通过应用程序接口（或称为陈述式的Java领域特定语言（DSL））来配置路由和中介的规则。</li>
+<li><a href="http://karaf.apache.org" target="_blank" rel="noopener">Karaf</a>: 是一个基于osgi运行环境的轻量级容器</li>
+<li><a href="http://servicemix.apache.org" target="_blank" rel="noopener">ServiceMix</a>:开源集成容器，它结合了Apache ActiveMQ、Camel、CXF和Karaf的特性和功能到一个强大的运行平台，你可以用它构建属于自己的集成解决方案.</li>
+<li><a href="http://ace.apache.org/" target="_blank" rel="noopener">Ace</a>:是一个软件发布框架，用于管理和发布模块化软件的组件、配置数据、其他基于OSGi的产品以及相关目标系统</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-OSGI在实际业务场景中的应用"><a href="#2-OSGI在实际业务场景中的应用" class="headerlink" title="2) OSGI在实际业务场景中的应用"></a>2) OSGI在实际业务场景中的应用</h4><p>就采集终端的业务特性，在公司在的整个业务体系占据着重要地位，可以说是数据奠基者，后端分析之根本，所以在考虑它的设计要求时，主要关注以下几个方面:  </p>
+<ol>
+<li>稳定性 确保使用新的采集插件或补丁时不会影响系统的运行</li>
+<li>扩展性 采集服务是在不断完善与扩张的，因此需要灵活扩展插件</li>
+<li>可用性 要保证7*24的正常运行。在出现故障，可支持自动重启或主从机切换</li>
+<li>安全性 要保障客户机的数据安全   </li>
+</ol>
+<p>OSGI的特性主要体现在对插件的扩展性方面,设计思路大致如下:</p>
+<ol>
+<li>定义一个接口插件包，用于抽象定义发现服务或采集数据的接口，以及相关的实体，要保证此接口不轻易改动</li>
+<li>定义一个或多个针对上述接口的扩展实现，比如主机，mysql,tomcat等服务，只需要在此插件中实现某一种服务类型的服务发现或采集业务实现，即完成了采集终端一种服务的扩展开发。</li>
+<li><p>定义一个调用接口服务的插件包，在其内部只需通过framework提供的bundleContext上下文对象，直接利用接口定义即可获取到所有实现此接口的所有扩展实例，从而避免了与扩展实现之间的直接依赖.</p>
+<p> 在此开发过程中，主要利用了osgi中的<code>包隔离机制</code>，<code>动态加载</code>以及通过<code>面向服务</code>调用这三方面来实现服务的动态扩展。</p>
+</li>
+</ol>
+<p>具体代码示例如下：</p>
+<ol>
+<li><p>定义接口插件，如discoverapi.jar</p>
+<pre><code>public interface IDiscover {
+
+    /**
+     * discover the service
+     * @return ServiceInfo the service&apos;s infomation
+     */
+    public ServiceInfo doDiscover();
+
+}
+</code></pre></li>
+<li><p>定义实现插件,如: 主机发现 hostdiscover.jar</p>
+<pre><code>public class HostDiscover implements IDiscover {
+
+    public ServiceInfo doDiscover(){
+        //TODO do some stuff
+        return xxxx;
+    }
+
+}
+</code></pre></li>
+<li><p>定义实现插件,如: mysql服务发现 mysqldiscover.jar</p>
+<pre><code>public class MysqlDiscover implements IDiscover {
+
+    public ServiceInfo doDiscover(){
+        //TODO do some stuff
+        return xxxx;
+    }
+
+}
+</code></pre></li>
+<li>定义调用插件,如：servicemain.jar</li>
+</ol>
+<pre><code>public class ServiceComponent {
+
+    public void doDiscover() throws InvalidSyntaxException{
+        List&lt;IDiscover&gt; serviceList = getBundles(Activator.getContext(), IDiscover.class);
+
+        for(IDiscover ids : serviceList){
+            System.out.println(&quot;find service:&quot;);
+            System.out.println(&quot;    the plugin [id: &quot;+ids.id()+&quot;+, name:&quot;+ids.name()+&quot; ], discover the detail:&quot;+ids.doDiscover()+&quot;\n&quot;);
+        }
+    }
+
+
+    public static &lt;T&gt; List&lt;T&gt; getBundles(BundleContext bundleContext,Class&lt;T&gt; clazz) throws InvalidSyntaxException {
+        Collection&lt;ServiceReference&lt;T&gt;&gt; srfList = null;
+
+        String filter = &quot;(group=&quot; + clazz.getName() + &quot;)&quot;;
+        try {
+             srfList = bundleContext.getServiceReferences(clazz, filter);
+        } catch (InvalidSyntaxException e) {
+            throw new InvalidSyntaxException(&quot;the filter syntax invalid error.&quot;,filter,e);
+        }
+
+        List&lt;T&gt; bundleList = (List&lt;T&gt;)new ArrayList(srfList.size());
+        for (ServiceReference&lt;T&gt; srf : srfList) {
+            bundleList.add(bundleContext.getService(srf));
+        }
+        return bundleList;
+    }
+}
+</code></pre><hr>
+<p>实例下载:<code>参考附件</code>  </p>
+<ol>
+<li><a href="http://xxx/" target="_blank" rel="noopener">SampleMain</a>  </li>
+<li><a href="http://xxx" target="_blank" rel="noopener">SamplePluginApi</a>  </li>
+<li><a href="http://xxx" target="_blank" rel="noopener">SamplePluginHost</a>  </li>
+<li><a href="http://xxx" target="_blank" rel="noopener">SamplePluginMysql</a>  </li>
+<li><a href="http://" target="_blank" rel="noopener">felix framework</a></li>
+</ol>
+</div><div class="tags"></div><div class="post-nav"><a class="pre" href="/2015/03/02/读书笔记》谷哥和亚马逊如何做产品/">读书笔记&gt;&gt;谷歌和亚马逊如何做产品</a><a class="next" href="/2015/03/02/WeeklyPlanNote/">WeeklyPlanNote</a></div></div></div></div><div class="pure-u-1 pure-u-md-1-4"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://hackdapp.com"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Inbox/">Inbox</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Mac日增一技/">Mac日增一技</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/区块链技术/">区块链技术</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/学习教程/">学习教程</a><span class="category-list-count">12</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/工具推荐/">工具推荐</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/技术手册/">技术手册</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/技术架构/">技术架构</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/操作系统/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/狸木匠周报/">狸木匠周报</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/生活随笔/">生活随笔</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/编程语言/">编程语言</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/自我认知/">自我认知</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/自检清单/">自检清单</a><span class="category-list-count">18</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/英语学习/">英语学习</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/设计模式/">设计模式</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/转载文章/">转载文章</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/问题总结/">问题总结</a><span class="category-list-count">4</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/思路/" style="font-size: 15px;">思路</a> <a href="/tags/hackhook/" style="font-size: 15px;">hackhook</a> <a href="/tags/认知/" style="font-size: 15px;">认知</a> <a href="/tags/工具推荐/" style="font-size: 15px;">工具推荐</a> <a href="/tags/ipfs/" style="font-size: 15px;">ipfs</a> <a href="/tags/区块链/" style="font-size: 15px;">区块链</a> <a href="/tags/复盘/" style="font-size: 15px;">复盘</a> <a href="/tags/hyedgper-fabric/" style="font-size: 15px;">hyedgper-fabric</a> <a href="/tags/通往财富自己之路/" style="font-size: 15px;">通往财富自己之路</a> <a href="/tags/日知录/" style="font-size: 15px;">日知录</a> <a href="/tags/精英日课/" style="font-size: 15px;">精英日课</a> <a href="/tags/每日回顾/" style="font-size: 15px;">每日回顾</a> <a href="/tags/Linux/" style="font-size: 15px;">Linux</a> <a href="/tags/问题解决/" style="font-size: 15px;">问题解决</a> <a href="/tags/友邻优课/" style="font-size: 15px;">友邻优课</a> <a href="/tags/写作套路/" style="font-size: 15px;">写作套路</a> <a href="/tags/插件开发/" style="font-size: 15px;">插件开发</a> <a href="/tags/站立办公桌/" style="font-size: 15px;">站立办公桌</a> <a href="/tags/git/" style="font-size: 15px;">git</a> <a href="/tags/dev/" style="font-size: 15px;">dev</a> <a href="/tags/A2/" style="font-size: 15px;">A2</a> <a href="/tags/golang/" style="font-size: 15px;">golang</a> <a href="/tags/电子diy/" style="font-size: 15px;">电子diy</a> <a href="/tags/Guava代码示例/" style="font-size: 15px;">Guava代码示例</a> <a href="/tags/wiki/" style="font-size: 15px;">wiki</a> <a href="/tags/Quick-Reference/" style="font-size: 15px;">Quick Reference</a> <a href="/tags/个人成长/" style="font-size: 15px;">个人成长</a> <a href="/tags/区块链技术/" style="font-size: 15px;">区块链技术</a> <a href="/tags/mac/" style="font-size: 15px;">mac</a> <a href="/tags/快捷键/" style="font-size: 15px;">快捷键</a> <a href="/tags/开发工具/" style="font-size: 15px;">开发工具</a> <a href="/tags/jpa/" style="font-size: 15px;">jpa</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/整理/" style="font-size: 15px;">整理</a> <a href="/tags/读书笔记/" style="font-size: 15px;">读书笔记</a> <a href="/tags/Mac/" style="font-size: 15px;">Mac</a> <a href="/tags/osgi/" style="font-size: 15px;">osgi</a> <a href="/tags/示例/" style="font-size: 15px;">示例</a> <a href="/tags/原创/" style="font-size: 15px;">原创</a> <a href="/tags/R/" style="font-size: 15px;">R</a> <a href="/tags/redis/" style="font-size: 15px;">redis</a> <a href="/tags/7/" style="font-size: 15px;">7</a> <a href="/tags/问题集锦/" style="font-size: 15px;">问题集锦</a> <a href="/tags/plan/" style="font-size: 15px;">plan</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/env/" style="font-size: 15px;">env</a> <a href="/tags/随笔/" style="font-size: 15px;">随笔</a> <a href="/tags/plugin/" style="font-size: 15px;">plugin</a> <a href="/tags/通往财富自由之路/" style="font-size: 15px;">通往财富自由之路</a> <a href="/tags/写作工具/" style="font-size: 15px;">写作工具</a> <a href="/tags/GTD/" style="font-size: 15px;">GTD</a> <a href="/tags/素质提升/" style="font-size: 15px;">素质提升</a> <a href="/tags/读书分享/" style="font-size: 15px;">读书分享</a> <a href="/tags/时间管理/" style="font-size: 15px;">时间管理</a> <a href="/tags/hexo/" style="font-size: 15px;">hexo</a> <a href="/tags/自动化发布/" style="font-size: 15px;">自动化发布</a> <a href="/tags/转摘/" style="font-size: 15px;">转摘</a> <a href="/tags/筑基修行录/" style="font-size: 15px;">筑基修行录</a> <a href="/tags/狸木匠知识分享/" style="font-size: 15px;">狸木匠知识分享</a> <a href="/tags/jekins/" style="font-size: 15px;">jekins</a> <a href="/tags/gradle/" style="font-size: 15px;">gradle</a> <a href="/tags/springboot/" style="font-size: 15px;">springboot</a> <a href="/tags/YLYK/" style="font-size: 15px;">YLYK</a> <a href="/tags/hexo问题/" style="font-size: 15px;">hexo问题</a> <a href="/tags/李笑来/" style="font-size: 15px;">李笑来</a> <a href="/tags/自我提升/" style="font-size: 15px;">自我提升</a> <a href="/tags/文具收集/" style="font-size: 15px;">文具收集</a> <a href="/tags/paw/" style="font-size: 15px;">paw</a> <a href="/tags/宝宝成长/" style="font-size: 15px;">宝宝成长</a> <a href="/tags/每日一贴/" style="font-size: 15px;">每日一贴</a> <a href="/tags/linux命令/" style="font-size: 15px;">linux命令</a> <a href="/tags/收集/" style="font-size: 15px;">收集</a> <a href="/tags/狸木匠周报/" style="font-size: 15px;">狸木匠周报</a> <a href="/tags/GOF/" style="font-size: 15px;">GOF</a> <a href="/tags/资源分享/" style="font-size: 15px;">资源分享</a> <a href="/tags/显性化思维/" style="font-size: 15px;">显性化思维</a> <a href="/tags/产品设计/" style="font-size: 15px;">产品设计</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/04/13/发刊词-筑基修行录/">发刊词 | 筑基修行录</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/06/180407-30分钟hyperledger-fabric搭建指南/">180407|30分钟hyperledger-fabric搭建指南</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/04/Go格式化占位符/">Go格式化占位符</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/28/180328-3月自我复盘/">180328|3月自我复盘</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/180321-iPic图床神器/">180321|iPic图床神器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/13/180314-基于IPFS搭建去中心化博客/">180314|基于IPFS搭建去中心化博客</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/180307-领导力与幸福/">180307 | 领导力与幸福</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/27/180228-转变/">180228 | 转变</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/180207-区块链简易入门/">180207|区块链简易入门</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/28/180128-入局首篇，随心往之/">180128 | 入局首篇，随心往之</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://program-think.blogspot.com/" title="编程随想" target="_blank">编程随想</a><ul></ul><a href="http://zhibimo.com/" title="知笔墨" target="_blank">知笔墨</a><ul></ul><a href="http://www.typing-lessons.org" title="keyboard" target="_blank">keyboard</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">HackDApp专栏.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
